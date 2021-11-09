@@ -5,7 +5,7 @@ import numpy as np
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
 
-
+#ici
 
 
 cap = cv2.VideoCapture(0)
