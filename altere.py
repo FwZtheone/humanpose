@@ -5,15 +5,10 @@ import numpy as np
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
 
-#ici
-
-
-# cap = cv2.VideoCapture(0)
-cap = cv2.VideoCapture('running.mp4')
+cap = cv2.VideoCapture(0)
 ## Setup mediapipe instance
 counter = 0 
-stage = 0
-etat = None
+stage = None
 
 def calculate_angle(a,b,c):
     a = np.array(a) # First
@@ -21,6 +16,7 @@ def calculate_angle(a,b,c):
     c = np.array(c) # End
     
     radians = np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])
+    
     angle = np.abs(radians*180.0/np.pi)
     
     if angle >180.0:
@@ -49,43 +45,27 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
             landmarks = results.pose_landmarks.landmark
             
             # Get coordinates
-
-
-            #ici je vais réfléchir à comment je peux trouver la valeur 
-            #je dois choper l'orteil
-
-
-            ankle = [landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].x,landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
-
-            heel = [landmarks[mp_pose.PoseLandmark.LEFT_HEEL.value].x,landmarks[mp_pose.PoseLandmark.LEFT_HEEL.value].y]
-
-
-            foot_index =  [landmarks[mp_pose.PoseLandmark.LEFT_FOOT_INDEX.value].x,landmarks[mp_pose.PoseLandmark.LEFT_FOOT_INDEX.value].y]
-
+            shoulder = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+            elbow = [landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].x,landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
+            wrist = [landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].x,landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
             
-
-
+            print(shoulder);
             # Calculate angle
-            angle = calculate_angle(ankle, heel, foot_index)
-            print(angle)
+            angle = calculate_angle(shoulder, elbow, wrist)
+            
             # Visualize angle
             cv2.putText(image, str(angle), 
-                           tuple(np.multiply(heel, [640, 480]).astype(int)), 
+                           tuple(np.multiply(elbow, [640, 480]).astype(int)), 
                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2, cv2.LINE_AA
                                 )
-            if angle  < 80:
-                stage = "pied en bas "  
-            elif angle > 80:
-                stage =  "pied en haut"
-      
+            
             # Curl counter logic
-            # à décomenter !!
-            # if angle > 160:
-            #     stage = "down"
-            # if angle < 30 and stage =='down':
-            #     stage="up"
-            #     counter +=1
-            #     print(counter)
+            if angle > 160:
+                stage = "down"
+            if angle < 30 and stage =='down':
+                stage="up"
+                counter +=1
+                print(counter)
                        
         except:
             pass
@@ -104,7 +84,7 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
         # Stage data
         cv2.putText(image, 'STAGE', (65,12), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 1, cv2.LINE_AA)
-        cv2.putText(image, str(stage), 
+        cv2.putText(image, stage, 
                     (60,60), 
                     cv2.FONT_HERSHEY_SIMPLEX, 2, (255,255,255), 2, cv2.LINE_AA)
         
